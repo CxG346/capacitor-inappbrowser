@@ -15,6 +15,39 @@
         android:layout_gravity="start"
         android:background="#eeeeef"
         android:contentDescription="@string/close_button" />
+
+    <ImageButton
+        android:id="@+id/backButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:background="#eeeeef"
+        android:contentDescription="@string/back_button"
+        android:paddingRight="10dp"
+        android:src="@drawable/arrow_back_disabled" />
+
+    <ImageButton
+        android:id="@+id/forwardButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:background="#eeeeef"
+        android:contentDescription="@string/forward_button"
+        android:paddingRight="10dp"
+        android:src="@drawable/arrow_forward_disabled" />
+
+    <ImageButton
+        android:id="@+id/downloadButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:background="#eeeeef"
+        android:contentDescription="@string/download_button"
+        android:paddingRight="10dp"
+        android:src="@drawable/download_disable"
+        android:scaleType="fitCenter"
+        />
+    
     <ImageButton
         android:id="@+id/reloadButton"
         android:layout_width="wrap_content"
@@ -38,22 +71,14 @@
         android:textColor="#262626" />
 
     <ImageButton
-        android:id="@+id/forwardButton"
+        android:id="@+id/shareButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
         android:background="#eeeeef"
-        android:contentDescription="@string/forward_button"
+        android:contentDescription="@string/share_button"
         android:paddingRight="10dp"
-        android:src="@drawable/arrow_forward_disabled" />
-
-    <ImageButton
-        android:id="@+id/backButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:background="#eeeeef"
-        android:contentDescription="@string/back_button"
-        android:paddingRight="10dp"
-        android:src="@drawable/arrow_back_disabled" />
+        android:src="@drawable/share_svg"
+        android:visibility="visible"
+         />
 </android.widget.Toolbar>

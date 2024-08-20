@@ -36,17 +36,22 @@ Then the permission will be asked when the camera is used.
 <docgen-index>
 
 * [`open(...)`](#open)
+* [`newOpen(...)`](#newopen)
 * [`clearCookies(...)`](#clearcookies)
 * [`getCookies(...)`](#getcookies)
 * [`close()`](#close)
 * [`openWebView(...)`](#openwebview)
+* [`openWeb(...)`](#openweb)
 * [`executeScript(...)`](#executescript)
 * [`setUrl(...)`](#seturl)
 * [`addListener('urlChangeEvent', ...)`](#addlistenerurlchangeevent-)
 * [`addListener('closeEvent', ...)`](#addlistenercloseevent-)
 * [`addListener('confirmBtnClicked', ...)`](#addlistenerconfirmbtnclicked-)
+* [`addListener('shareButtonClicked', ...)`](#addlistenersharebuttonclicked-)
+* [`addListener('downloadButtonClicked', ...)`](#addlistenerdownloadbuttonclicked-)
 * [`removeAllListeners()`](#removealllisteners)
 * [`reload()`](#reload)
+* [`shareFunction(...)`](#sharefunction)
 * [Interfaces](#interfaces)
 * [Type Aliases](#type-aliases)
 * [Enums](#enums)
@@ -71,6 +76,21 @@ Open url in a new window fullscreen
 **Returns:** <code>Promise&lt;any&gt;</code>
 
 **Since:** 0.1.0
+
+--------------------
+
+
+### newOpen(...)
+
+```typescript
+newOpen(options: NewOpenOptions) => Promise<any>
+```
+
+| Param         | Type                                                      |
+| ------------- | --------------------------------------------------------- |
+| **`options`** | <code><a href="#newopenoptions">NewOpenOptions</a></code> |
+
+**Returns:** <code>Promise&lt;any&gt;</code>
 
 --------------------
 
@@ -141,6 +161,23 @@ Open url in a new webview with toolbars
 --------------------
 
 
+### openWeb(...)
+
+```typescript
+openWeb(options: NewOpenWebOptions) => Promise<void>
+```
+
+Open url in a new webview with toolbars
+
+| Param         | Type                                                            |
+| ------------- | --------------------------------------------------------------- |
+| **`options`** | <code><a href="#newopenweboptions">NewOpenWebOptions</a></code> |
+
+**Since:** 0.1.0
+
+--------------------
+
+
 ### executeScript(...)
 
 ```typescript
@@ -174,7 +211,7 @@ setUrl(options: { url: string; }) => Promise<any>
 ### addListener('urlChangeEvent', ...)
 
 ```typescript
-addListener(eventName: "urlChangeEvent", listenerFunc: UrlChangeListener) => Promise<PluginListenerHandle>
+addListener(eventName: 'urlChangeEvent', listenerFunc: UrlChangeListener) => Promise<PluginListenerHandle>
 ```
 
 Listen for url change, only for openWebView
@@ -194,7 +231,7 @@ Listen for url change, only for openWebView
 ### addListener('closeEvent', ...)
 
 ```typescript
-addListener(eventName: "closeEvent", listenerFunc: UrlChangeListener) => Promise<PluginListenerHandle>
+addListener(eventName: 'closeEvent', listenerFunc: UrlChangeListener) => Promise<PluginListenerHandle>
 ```
 
 Listen for close click only for openWebView
@@ -214,7 +251,7 @@ Listen for close click only for openWebView
 ### addListener('confirmBtnClicked', ...)
 
 ```typescript
-addListener(eventName: "confirmBtnClicked", listenerFunc: ConfirmBtnListener) => Promise<PluginListenerHandle>
+addListener(eventName: 'confirmBtnClicked', listenerFunc: ConfirmBtnListener) => Promise<PluginListenerHandle>
 ```
 
 Will be triggered when user clicks on confirm button when disclaimer is required, works only on iOS
@@ -227,6 +264,46 @@ Will be triggered when user clicks on confirm button when disclaimer is required
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
 **Since:** 0.0.1
+
+--------------------
+
+
+### addListener('shareButtonClicked', ...)
+
+```typescript
+addListener(eventName: 'shareButtonClicked', listenerFunc: () => void) => Promise<PluginListenerHandle>
+```
+
+Will be triggered when user clicks on share button
+
+| Param              | Type                              |
+| ------------------ | --------------------------------- |
+| **`eventName`**    | <code>'shareButtonClicked'</code> |
+| **`listenerFunc`** | <code>() =&gt; void</code>        |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+**Since:** 1.0.0
+
+--------------------
+
+
+### addListener('downloadButtonClicked', ...)
+
+```typescript
+addListener(eventName: 'downloadButtonClicked', listenerFunc: () => void) => Promise<PluginListenerHandle>
+```
+
+Will be triggered when user clicks on download button
+
+| Param              | Type                                 |
+| ------------------ | ------------------------------------ |
+| **`eventName`**    | <code>'downloadButtonClicked'</code> |
+| **`listenerFunc`** | <code>() =&gt; void</code>           |
+
+**Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
+
+**Since:** 1.0.0
 
 --------------------
 
@@ -259,6 +336,25 @@ Reload the current web page.
 --------------------
 
 
+### shareFunction(...)
+
+```typescript
+shareFunction(options: shareFunctionOptions) => Promise<any>
+```
+
+Share the current URL.
+
+| Param         | Type                                                                  |
+| ------------- | --------------------------------------------------------------------- |
+| **`options`** | <code><a href="#sharefunctionoptions">shareFunctionOptions</a></code> |
+
+**Returns:** <code>Promise&lt;any&gt;</code>
+
+**Since:** 1.1.0
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -273,6 +369,25 @@ Reload the current web page.
 
 
 #### Headers
+
+
+#### NewOpenOptions
+
+| Prop                         | Type                                                                                             | Description                                                                                                           | Since |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- | ----- |
+| **`url`**                    | <code>string</code>                                                                              | Target URL to load.                                                                                                   | 0.1.0 |
+| **`headers`**                | <code><a href="#headers">Headers</a></code>                                                      | <a href="#headers">Headers</a> to send with the request.                                                              | 0.1.0 |
+| **`isPresentAfterPageLoad`** | <code>boolean</code>                                                                             | if true, the browser will be presented after the page is loaded, if false, the browser will be presented immediately. | 0.1.0 |
+| **`preventDeeplink`**        | <code>boolean</code>                                                                             |                                                                                                                       |       |
+| **`headerBackgroundColor`**  | <code>string</code>                                                                              |                                                                                                                       |       |
+| **`headerPosition`**         | <code>'top' \| 'bottom'</code>                                                                   |                                                                                                                       |       |
+| **`closeButton`**            | <code>{ display: boolean; color?: string; }</code>                                               |                                                                                                                       |       |
+| **`navigationButtons`**      | <code>{ display: boolean; color?: string; }</code>                                               |                                                                                                                       |       |
+| **`title`**                  | <code>{ display: boolean; label?: string; color?: string; }</code>                               |                                                                                                                       |       |
+| **`downloadButton`**         | <code>{ display: boolean; color?: string; }</code>                                               |                                                                                                                       |       |
+| **`refreshButton`**          | <code>{ display: boolean; color?: string; }</code>                                               |                                                                                                                       |       |
+| **`shareButton`**            | <code>{ display: boolean; backgroundColor?: string; textColor?: string; label?: string; }</code> |                                                                                                                       |       |
+| **`clearSessionCache`**      | <code>boolean</code>                                                                             |                                                                                                                       |       |
 
 
 #### ClearCookieOptions
@@ -338,6 +453,39 @@ Reload the current web page.
 | **`cancelBtn`**  | <code>string</code> |
 
 
+#### NewOpenWebOptions
+
+| Prop                                   | Type                                                            | Description                                                                                                                                                                       | Default                                                    | Since  |
+| -------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------ |
+| **`url`**                              | <code>string</code>                                             | Target URL to load.                                                                                                                                                               |                                                            | 0.1.0  |
+| **`headers`**                          | <code><a href="#headers">Headers</a></code>                     | <a href="#headers">Headers</a> to send with the request.                                                                                                                          |                                                            | 0.1.0  |
+| **`shareDisclaimer`**                  | <code><a href="#disclaimeroptions">DisclaimerOptions</a></code> | share options                                                                                                                                                                     |                                                            | 0.1.0  |
+| **`toolbarType`**                      | <code><a href="#toolbartype">ToolBarType</a></code>             | Toolbar type                                                                                                                                                                      | <code>ToolBarType.DEFAULT</code>                           | 0.1.0  |
+| **`shareSubject`**                     | <code>string</code>                                             | Share subject                                                                                                                                                                     |                                                            | 0.1.0  |
+| **`title`**                            | <code>string</code>                                             | Title of the browser                                                                                                                                                              | <code>'New Window'</code>                                  | 0.1.0  |
+| **`backgroundColor`**                  | <code><a href="#backgroundcolor">BackgroundColor</a></code>     | Background color of the browser, only on IOS                                                                                                                                      | <code>BackgroundColor.BLACK</code>                         | 0.1.0  |
+| **`activeNativeNavigationForWebview`** | <code>boolean</code>                                            | If true, active the native navigation within the webview, Android only                                                                                                            | <code>false</code>                                         |        |
+| **`disableGoBackOnNativeApplication`** | <code>boolean</code>                                            | Disable the possibility to go back on native application, usefull to force user to stay on the webview, Android only                                                              | <code>false</code>                                         |        |
+| **`isPresentAfterPageLoad`**           | <code>boolean</code>                                            | Open url in a new window fullscreen isPresentAfterPageLoad: if true, the browser will be presented after the page is loaded, if false, the browser will be presented immediately. | <code>false</code>                                         | 0.1.0  |
+| **`isInspectable`**                    | <code>boolean</code>                                            | Whether the website in the webview is inspectable or not, ios only                                                                                                                | <code>false</code>                                         |        |
+| **`isAnimated`**                       | <code>boolean</code>                                            | Whether the webview opening is animated or not, ios only                                                                                                                          | <code>true</code>                                          |        |
+| **`showReloadButton`**                 | <code>boolean</code>                                            | Shows a reload button that reloads the web page                                                                                                                                   | <code>false</code>                                         | 1.0.15 |
+| **`closeModal`**                       | <code>boolean</code>                                            | CloseModal: if true a confirm will be displayed when user clicks on close button, if false the browser will be closed immediately.                                                | <code>false</code>                                         | 1.1.0  |
+| **`closeModalTitle`**                  | <code>string</code>                                             | CloseModalTitle: title of the confirm when user clicks on close button, only on IOS                                                                                               | <code>'Close'</code>                                       | 1.1.0  |
+| **`closeModalDescription`**            | <code>string</code>                                             | CloseModalDescription: description of the confirm when user clicks on close button, only on IOS                                                                                   | <code>'Are you sure you want to close this window?'</code> | 1.1.0  |
+| **`closeModalOk`**                     | <code>string</code>                                             | CloseModalOk: text of the confirm button when user clicks on close button, only on IOS                                                                                            | <code>'Close'</code>                                       | 1.1.0  |
+| **`closeModalCancel`**                 | <code>string</code>                                             | CloseModalCancel: text of the cancel button when user clicks on close button, only on IOS                                                                                         | <code>'Cancel'</code>                                      | 1.1.0  |
+| **`visibleTitle`**                     | <code>boolean</code>                                            | visibleTitle: if true the website title would be shown else shown empty                                                                                                           | <code>true</code>                                          | 1.2.5  |
+| **`toolbarColor`**                     | <code>string</code>                                             | toolbarColor: color of the toolbar in hex format                                                                                                                                  | <code>'#ffffff''</code>                                    | 1.2.5  |
+| **`showArrow`**                        | <code>boolean</code>                                            | showArrow: if true an arrow would be shown instead of cross for closing the window                                                                                                | <code>false</code>                                         | 1.2.5  |
+| **`ignoreUntrustedSSLError`**          | <code>boolean</code>                                            | ignoreUntrustedSSLError: if true, the webview will ignore untrusted SSL errors allowing the user to view the website.                                                             | <code>false</code>                                         | 6.1.0  |
+| **`browserPosition`**                  | <code>'top' \| 'bottom'</code>                                  | Position of the browser.                                                                                                                                                          |                                                            | 0.1.0  |
+| **`showShareButton`**                  | <code>boolean</code>                                            | Show share button.                                                                                                                                                                |                                                            | 0.1.0  |
+| **`showDownloadButton`**               | <code>boolean</code>                                            | Show download button.                                                                                                                                                             |                                                            | 0.1.0  |
+| **`showNavigationButtons`**            | <code>boolean</code>                                            | Show navigation buttons.                                                                                                                                                          |                                                            | 0.1.0  |
+| **`jsFunction`**                       | <code>string</code>                                             |                                                                                                                                                                                   |                                                            |        |
+
+
 #### PluginListenerHandle
 
 | Prop         | Type                                      |
@@ -357,6 +505,13 @@ Reload the current web page.
 | Prop      | Type                | Description                    | Since |
 | --------- | ------------------- | ------------------------------ | ----- |
 | **`url`** | <code>string</code> | Emit when a button is clicked. | 0.0.1 |
+
+
+#### shareFunctionOptions
+
+| Prop              | Type                |
+| ----------------- | ------------------- |
+| **`newFunction`** | <code>string</code> |
 
 
 ### Type Aliases
@@ -417,18 +572,18 @@ Construct a type with a set of properties K of type T
 
 | Members          | Value                     |
 | ---------------- | ------------------------- |
-| **`ACTIVITY`**   | <code>"activity"</code>   |
-| **`NAVIGATION`** | <code>"navigation"</code> |
-| **`BLANK`**      | <code>"blank"</code>      |
-| **`DEFAULT`**    | <code>""</code>           |
+| **`ACTIVITY`**   | <code>'activity'</code>   |
+| **`NAVIGATION`** | <code>'navigation'</code> |
+| **`BLANK`**      | <code>'blank'</code>      |
+| **`DEFAULT`**    | <code>''</code>           |
 
 
 #### BackgroundColor
 
 | Members     | Value                |
 | ----------- | -------------------- |
-| **`WHITE`** | <code>"white"</code> |
-| **`BLACK`** | <code>"black"</code> |
+| **`WHITE`** | <code>'white'</code> |
+| **`BLACK`** | <code>'black'</code> |
 
 </docgen-api>
 

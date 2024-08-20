@@ -1,4 +1,4 @@
-import type { PluginListenerHandle } from "@capacitor/core";
+import type { PluginListenerHandle } from '@capacitor/core';
 
 export interface UrlEvent {
   /**
@@ -21,14 +21,14 @@ export type UrlChangeListener = (state: UrlEvent) => void;
 export type ConfirmBtnListener = (state: BtnEvent) => void;
 
 export enum BackgroundColor {
-  WHITE = "white",
-  BLACK = "black",
+  WHITE = 'white',
+  BLACK = 'black',
 }
 export enum ToolBarType {
-  ACTIVITY = "activity",
-  NAVIGATION = "navigation",
-  BLANK = "blank",
-  DEFAULT = "",
+  ACTIVITY = 'activity',
+  NAVIGATION = 'navigation',
+  BLANK = 'blank',
+  DEFAULT = '',
 }
 
 export interface Headers {
@@ -43,6 +43,175 @@ export interface GetCookieOptions {
 export interface ClearCookieOptions {
   url: string;
   cache?: boolean;
+}
+
+export interface NewOpenWebOptions {
+  /**
+   * Target URL to load.
+   * @since 0.1.0
+   */
+  url: string;
+  /**
+   * Headers to send with the request.
+   * @since 0.1.0
+   */
+  headers?: Headers;
+  /**
+   * share options
+   * @since 0.1.0
+   */
+  shareDisclaimer?: DisclaimerOptions;
+  /**
+   * Toolbar type
+   * @since 0.1.0
+   * @default ToolBarType.DEFAULT
+   */
+  toolbarType?: ToolBarType;
+  /**
+   * Share subject
+   * @since 0.1.0
+   */
+  shareSubject?: string;
+  /**
+   * Title of the browser
+   * @since 0.1.0
+   * @default 'New Window'
+   */
+  title?: string;
+  /**
+   * Background color of the browser, only on IOS
+   * @since 0.1.0
+   * @default BackgroundColor.BLACK
+   */
+  backgroundColor?: BackgroundColor;
+  /**
+   * If true, active the native navigation within the webview, Android only
+   *
+   * @default false
+   */
+  activeNativeNavigationForWebview?: boolean;
+  /**
+   * Disable the possibility to go back on native application,
+   * usefull to force user to stay on the webview, Android only
+   *
+   * @default false
+   */
+  disableGoBackOnNativeApplication?: boolean;
+  /**
+   * Open url in a new window fullscreen
+   *
+   * isPresentAfterPageLoad: if true, the browser will be presented after the page is loaded, if false, the browser will be presented immediately.
+   * @since 0.1.0
+   * @default false
+   */
+  isPresentAfterPageLoad?: boolean;
+  /**
+   * Whether the website in the webview is inspectable or not, ios only
+   *
+   * @default false
+   */
+  isInspectable?: boolean;
+  /**
+   * Whether the webview opening is animated or not, ios only
+   *
+   * @default true
+   */
+  isAnimated?: boolean;
+  /**
+   * Shows a reload button that reloads the web page
+   * @since 1.0.15
+   * @default false
+   */
+  showReloadButton?: boolean;
+  /**
+   * CloseModal: if true a confirm will be displayed when user clicks on close button, if false the browser will be closed immediately.
+   *
+   * @since 1.1.0
+   * @default false
+   */
+  closeModal?: boolean;
+  /**
+   * CloseModalTitle: title of the confirm when user clicks on close button, only on IOS
+   *
+   * @since 1.1.0
+   * @default 'Close'
+   */
+  closeModalTitle?: string;
+  /**
+   * CloseModalDescription: description of the confirm when user clicks on close button, only on IOS
+   *
+   * @since 1.1.0
+   * @default 'Are you sure you want to close this window?'
+   */
+  closeModalDescription?: string;
+  /**
+   * CloseModalOk: text of the confirm button when user clicks on close button, only on IOS
+   *
+   * @since 1.1.0
+   * @default 'Close'
+   */
+  closeModalOk?: string;
+  /**
+   * CloseModalCancel: text of the cancel button when user clicks on close button, only on IOS
+   *
+   * @since 1.1.0
+   * @default 'Cancel'
+   */
+  closeModalCancel?: string;
+  /**
+   * visibleTitle: if true the website title would be shown else shown empty
+   *
+   * @since 1.2.5
+   * @default true
+   */
+  visibleTitle?: boolean;
+  /**
+   * toolbarColor: color of the toolbar in hex format
+   *
+   * @since 1.2.5
+   * @default '#ffffff''
+   */
+  toolbarColor?: string;
+  /**
+   * showArrow: if true an arrow would be shown instead of cross for closing the window
+   *
+   * @since 1.2.5
+   * @default false
+   */
+  showArrow?: boolean;
+  /**
+   * ignoreUntrustedSSLError: if true, the webview will ignore untrusted SSL errors allowing the user to view the website.
+   *
+   * @since 6.1.0
+   * @default false
+   */
+  ignoreUntrustedSSLError?: boolean;
+  /**
+   * Position of the browser.
+   * @since 0.1.0
+   */
+  browserPosition: 'top' | 'bottom';
+  /**
+   * Show share button.
+   * @since 0.1.0
+   */
+  showShareButton?: boolean;
+  /**
+   * Show download button.
+   * @since 0.1.0
+   */
+  showDownloadButton?: boolean;
+  /**
+   * Show navigation buttons.
+   * @since 0.1.0
+   */
+  showNavigationButtons?: boolean;
+
+  jsFunction?: string;
+}
+
+export interface shareFunctionOptions {
+  newFunction: string
 }
 
 export interface OpenOptions {
@@ -62,6 +231,56 @@ export interface OpenOptions {
    */
   isPresentAfterPageLoad?: boolean;
   preventDeeplink?: boolean;
+}
+
+export interface NewOpenOptions {
+  /**
+   * Target URL to load.
+   * @since 0.1.0
+   */
+  url: string;
+  /**
+   * Headers to send with the request.
+   * @since 0.1.0
+   */
+  headers?: Headers;
+  /**
+   * if true, the browser will be presented after the page is loaded, if false, the browser will be presented immediately.
+   * @since 0.1.0
+   */
+  isPresentAfterPageLoad?: boolean;
+  preventDeeplink?: boolean;
+
+  headerBackgroundColor?: string;
+  headerPosition?: 'top' | 'bottom';
+  closeButton?: {
+    display: boolean;
+    color?: string;
+  };
+  navigationButtons?: {
+    display: boolean;
+    color?: string;
+  };
+  title?: {
+    display: boolean;
+    label?: string;
+    color?: string;
+  };
+  downloadButton?: {
+    display: boolean;
+    color?: string;
+  };
+  refreshButton?: {
+    display: boolean;
+    color?: string;
+  };
+  shareButton?: {
+    display: boolean;
+    backgroundColor?: string;
+    textColor?: string;
+    label?: string;
+  };
+  clearSessionCache?: boolean;
 }
 
 export interface DisclaimerOptions {
@@ -222,6 +441,8 @@ export interface InAppBrowserPlugin {
    */
   open(options: OpenOptions): Promise<any>;
 
+  newOpen(options: NewOpenOptions): Promise<any>;
+
   /**
    * Clear cookies of url
    *
@@ -243,6 +464,15 @@ export interface InAppBrowserPlugin {
    * @since 0.1.0
    */
   openWebView(options: OpenWebViewOptions): Promise<any>;
+
+  /**
+   * Open url in a new webview with toolbars
+   *
+   * @since 0.1.0
+   */
+
+  openWeb(options: NewOpenWebOptions): Promise<void>;
+
   /**
    * Injects JavaScript code into the InAppBrowser window.
    */
@@ -253,29 +483,34 @@ export interface InAppBrowserPlugin {
    *
    * @since 0.0.1
    */
-  addListener(
-    eventName: "urlChangeEvent",
-    listenerFunc: UrlChangeListener,
-  ): Promise<PluginListenerHandle>;
+  addListener(eventName: 'urlChangeEvent', listenerFunc: UrlChangeListener): Promise<PluginListenerHandle>;
 
   /**
    * Listen for close click only for openWebView
    *
    * @since 0.4.0
    */
-  addListener(
-    eventName: "closeEvent",
-    listenerFunc: UrlChangeListener,
-  ): Promise<PluginListenerHandle>;
+  addListener(eventName: 'closeEvent', listenerFunc: UrlChangeListener): Promise<PluginListenerHandle>;
   /**
    * Will be triggered when user clicks on confirm button when disclaimer is required, works only on iOS
    *
    * @since 0.0.1
    */
-  addListener(
-    eventName: "confirmBtnClicked",
-    listenerFunc: ConfirmBtnListener,
-  ): Promise<PluginListenerHandle>;
+  addListener(eventName: 'confirmBtnClicked', listenerFunc: ConfirmBtnListener): Promise<PluginListenerHandle>;
+
+    /**
+   * Will be triggered when user clicks on share button
+   *
+   * @since 1.0.0
+   */
+  addListener(eventName: 'shareButtonClicked', listenerFunc: () => void): Promise<PluginListenerHandle>;
+
+      /**
+   * Will be triggered when user clicks on download button
+   *
+   * @since 1.0.0
+   */
+      addListener(eventName: 'downloadButtonClicked', listenerFunc: () => void): Promise<PluginListenerHandle>;
 
   /**
    * Remove all listeners for this plugin.
@@ -290,4 +525,11 @@ export interface InAppBrowserPlugin {
    * @since 1.0.0
    */
   reload(): Promise<any>; // Add this line
+
+   /**
+   * Share the current URL.
+   *
+   * @since 1.1.0
+   */
+   shareFunction(options: shareFunctionOptions): Promise<any>;
 }

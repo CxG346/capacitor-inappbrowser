@@ -26,26 +26,34 @@ import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
-import java.util.Iterator;
 
-@CapacitorPlugin(
-  name = "InAppBrowser",
-  permissions = {
+import java.lang.StackWalker.Option;
+import java.util.Iterator;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.graphics.Color;
+import android.widget.RelativeLayout;
+import android.widget.LinearLayout;
+import android.widget.Button;
+import android.view.View;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.view.ViewGroup;
+
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.util.Log;
+import android.widget.Toast;
+import android.content.Context;
+
+@CapacitorPlugin(name = "InAppBrowser", permissions = {
     @Permission(alias = "camera", strings = { Manifest.permission.CAMERA }),
-    @Permission(
-      alias = "storage",
-      strings = { Manifest.permission.READ_EXTERNAL_STORAGE }
-    ),
-    @Permission(
-      alias = "storage",
-      strings = { Manifest.permission.READ_MEDIA_IMAGES }
-    ),
-  },
-  requestCodes = { WebViewDialog.FILE_CHOOSER_REQUEST_CODE }
-)
+    @Permission(alias = "storage", strings = { Manifest.permission.READ_EXTERNAL_STORAGE }),
+    @Permission(alias = "storage", strings = { Manifest.permission.READ_MEDIA_IMAGES }),
+}, requestCodes = { WebViewDialog.FILE_CHOOSER_REQUEST_CODE })
 public class InAppBrowserPlugin
-  extends Plugin
-  implements WebViewDialog.PermissionHandler {
+    extends Plugin
+    implements WebViewDialog.PermissionHandler {
 
   public static final String CUSTOM_TAB_PACKAGE_NAME = "com.android.chrome"; // Change when in stable
   private CustomTabsClient customTabsClient;
@@ -54,6 +62,16 @@ public class InAppBrowserPlugin
   private String currentUrl = "";
 
   private PermissionRequest currentPermissionRequest;
+  private WebView webView;
+  private Context context;
+
+  public boolean hasListeners(String eventName) {
+    return super.hasListeners(eventName);
+  }
+
+  public void notifyListeners(String eventName, JSObject data) {
+    super.notifyListeners(eventName, data);
+  }
 
   public void handleCameraPermissionRequest(PermissionRequest request) {
     this.currentPermissionRequest = request;
@@ -66,10 +84,9 @@ public class InAppBrowserPlugin
 
   @Override
   protected void handleOnActivityResult(
-    int requestCode,
-    int resultCode,
-    Intent data
-  ) {
+      int requestCode,
+      int resultCode,
+      Intent data) {
     super.handleOnActivityResult(requestCode, resultCode, data);
 
     // Check if the request code matches the file chooser request code
@@ -110,8 +127,7 @@ public class InAppBrowserPlugin
   private void grantCameraPermission() {
     if (currentPermissionRequest != null) {
       currentPermissionRequest.grant(
-        new String[] { PermissionRequest.RESOURCE_VIDEO_CAPTURE }
-      );
+          new String[] { PermissionRequest.RESOURCE_VIDEO_CAPTURE });
       currentPermissionRequest = null;
     }
   }
@@ -119,16 +135,161 @@ public class InAppBrowserPlugin
   CustomTabsServiceConnection connection = new CustomTabsServiceConnection() {
     @Override
     public void onCustomTabsServiceConnected(
-      ComponentName name,
-      CustomTabsClient client
-    ) {
+        ComponentName name,
+        CustomTabsClient client) {
       customTabsClient = client;
       client.warmup(0);
     }
 
     @Override
-    public void onServiceDisconnected(ComponentName name) {}
+    public void onServiceDisconnected(ComponentName name) {
+    }
   };
+
+  @Override
+  public void load() {
+    super.load();
+    webView = new WebView(getContext());
+    webView.getSettings().setJavaScriptEnabled(true);
+
+    // Configurar webView según sea necesario
+  }
+
+  @PluginMethod
+  public void shareFunction() {
+  }
+
+  @PluginMethod
+  public void openWeb(PluginCall call) {
+    String url = call.getString("url");
+
+    if (url == null || TextUtils.isEmpty(url)) {
+      call.reject("Invalid URL");
+    }
+    currentUrl = url;
+    final Options options = new Options();
+    options.setUrl(url);
+    options.setHeaders(call.getObject("headers"));
+    options.setShowReloadButton(call.getBoolean("showReloadButton", false));
+    options.setVisibleTitle(call.getBoolean("visibleTitle", true));
+
+    if (Boolean.TRUE.equals(options.getVisibleTitle())) {
+      options.setTitle(call.getString("title", "New Window"));
+    } else {
+      options.setTitle(call.getString("title", ""));
+    }
+    options.setToolbarColor(call.getString("toolbarColor", "#ffffff"));
+    options.setArrow(Boolean.TRUE.equals(call.getBoolean("showArrow", false)));
+    options.setShareButton(Boolean.TRUE.equals(call.getBoolean("showShareButton", false)));
+    options.setDownloadButton(Boolean.TRUE.equals(call.getBoolean("showDownloadButton", false)));
+    options.setNavigationButtons(Boolean.TRUE.equals(call.getBoolean("showNavigationButtons", false)));
+    options.setIgnoreUntrustedSSLError(Boolean.TRUE.equals(call.getBoolean("ignoreUntrustedSSLError", false)));
+    options.setShareDisclaimer(call.getObject("shareDisclaimer", null));
+    options.setShareSubject(call.getString("shareSubject", null));
+    options.setToolbarType(call.getString("toolbarType", ""));
+    options.setActiveNativeNavigationForWebview(call.getBoolean("activeNativeNavigationForWebview", false));
+    options.setDisableGoBackOnNativeApplication(call.getBoolean("disableGoBackOnNativeApplication", false));
+    options.setPresentAfterPageLoad(call.getBoolean("isPresentAfterPageLoad", false));
+    if (call.getBoolean("closeModal", false)) {
+      options.setCloseModal(true);
+      options.setCloseModalTitle(call.getString("closeModalTitle", "Close"));
+      options.setCloseModalDescription(call.getString("closeModalDescription", "Are you sure ?"));
+      options.setCloseModalOk(call.getString("closeModalOk", "Ok"));
+      options.setCloseModalCancel(call.getString("closeModalCancel", "Cancel"));
+    } else {
+      options.setCloseModal(false);
+    }
+
+    String browserPosition = call.getString("browserPosition", "top");
+    options.setBrowserPosition(browserPosition);
+
+    options.setPluginCall(call);
+    options.setCallbacks(
+        new WebViewCallbacks() {
+          @Override
+          public void urlChangeEvent(String url) {
+            notifyListeners("urlChangeEvent", new JSObject().put("url", url));
+          }
+
+          @Override
+          public void closeEvent(String url) {
+            notifyListeners("closeEvent", new JSObject().put("url", url));
+          }
+
+          @Override
+          public void pageLoaded() {
+            notifyListeners("browserPageLoaded", new JSObject());
+          }
+
+          @Override
+          public void pageLoadError() {
+            notifyListeners("pageLoadError", new JSObject());
+          }
+
+          @Override
+          public void shareButtonClicked() {
+            Log.d("InAppBrowser", "Share button clicked");
+            notifyListeners("shareButtonClicked", new JSObject());
+          }
+
+          @Override
+          public void downloadButtonClicked() {
+            notifyListeners("downloadButtonClicked", new JSObject());
+          }
+        });
+
+    this.getActivity().runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          webViewDialog = new WebViewDialog(
+              getContext(),
+              android.R.style.Theme_NoTitleBar,
+              options,
+              InAppBrowserPlugin.this);
+
+          webViewDialog.setWebViewCallbacks(new WebViewCallbacks() {
+            @Override
+            public void urlChangeEvent(String url) {
+              notifyListeners("urlChangeEvent", new JSObject().put("url", url));
+            }
+
+            @Override
+            public void closeEvent(String url) {
+              notifyListeners("closeEvent", new JSObject().put("url", url));
+            }
+
+            @Override
+            public void pageLoaded() {
+              notifyListeners("browserPageLoaded", new JSObject());
+            }
+
+            @Override
+            public void pageLoadError() {
+              notifyListeners("pageLoadError", new JSObject());
+            }
+
+            @Override
+            public void shareButtonClicked() {
+              notifyListeners("shareButtonClicked", new JSObject());
+            }
+
+            @Override
+            public void downloadButtonClicked() {
+              notifyListeners("downloadButtonClicked", new JSObject());
+            }
+          });
+
+          webViewDialog.setPosition(browserPosition);
+          webViewDialog.presentWebView();
+          webViewDialog.activity = InAppBrowserPlugin.this.getActivity();
+
+        } catch (Exception e) {
+          call.reject("Error initializing WebViewDialog: " + e.getMessage());
+        }
+      }
+    });
+  }
 
   @PluginMethod
   public void requestCameraPermission(PluginCall call) {
@@ -143,12 +304,9 @@ public class InAppBrowserPlugin
   private void cameraPermissionCallback(PluginCall call) {
     if (getPermissionState("camera") == PermissionState.GRANTED) {
       // Permission granted, notify the WebView to proceed
-      if (
-        webViewDialog != null && webViewDialog.currentPermissionRequest != null
-      ) {
+      if (webViewDialog != null && webViewDialog.currentPermissionRequest != null) {
         webViewDialog.currentPermissionRequest.grant(
-          new String[] { PermissionRequest.RESOURCE_VIDEO_CAPTURE }
-        );
+            new String[] { PermissionRequest.RESOURCE_VIDEO_CAPTURE });
         webViewDialog.currentPermissionRequest = null;
       }
       call.resolve();
@@ -165,14 +323,13 @@ public class InAppBrowserPlugin
     }
     currentUrl = url;
     this.getActivity()
-      .runOnUiThread(
-        new Runnable() {
-          @Override
-          public void run() {
-            webViewDialog.setUrl(url);
-          }
-        }
-      );
+        .runOnUiThread(
+            new Runnable() {
+              @Override
+              public void run() {
+                webViewDialog.setUrl(url);
+              }
+            });
     call.resolve();
   }
 
@@ -188,29 +345,24 @@ public class InAppBrowserPlugin
     }
     currentUrl = url;
     CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder(
-      getCustomTabsSession()
-    );
+        getCustomTabsSession());
     CustomTabsIntent tabsIntent = builder.build();
     tabsIntent.intent.putExtra(
-      Intent.EXTRA_REFERRER,
-      Uri.parse(
-        Intent.URI_ANDROID_APP_SCHEME + "//" + getContext().getPackageName()
-      )
-    );
+        Intent.EXTRA_REFERRER,
+        Uri.parse(
+            Intent.URI_ANDROID_APP_SCHEME + "//" + getContext().getPackageName()));
     tabsIntent.intent.putExtra(
-      android.provider.Browser.EXTRA_HEADERS,
-      this.getHeaders(call)
-    );
+        android.provider.Browser.EXTRA_HEADERS,
+        this.getHeaders(call));
 
     if (preventDeeplink != null) {
       String browserPackageName = "";
       Intent browserIntent = new Intent(
-        Intent.ACTION_VIEW,
-        Uri.parse("http://")
-      );
+          Intent.ACTION_VIEW,
+          Uri.parse("http://"));
       ResolveInfo resolveInfo = getContext()
-        .getPackageManager()
-        .resolveActivity(browserIntent, PackageManager.MATCH_DEFAULT_ONLY);
+          .getPackageManager()
+          .resolveActivity(browserIntent, PackageManager.MATCH_DEFAULT_ONLY);
 
       if (resolveInfo != null) {
         browserPackageName = resolveInfo.activityInfo.packageName;
@@ -288,72 +440,74 @@ public class InAppBrowserPlugin
     options.setToolbarColor(call.getString("toolbarColor", "#ffffff"));
     options.setArrow(Boolean.TRUE.equals(call.getBoolean("showArrow", false)));
     options.setIgnoreUntrustedSSLError(
-      Boolean.TRUE.equals(call.getBoolean("ignoreUntrustedSSLError", false))
-    );
+        Boolean.TRUE.equals(call.getBoolean("ignoreUntrustedSSLError", false)));
     options.setShareDisclaimer(call.getObject("shareDisclaimer", null));
     options.setShareSubject(call.getString("shareSubject", null));
     options.setToolbarType(call.getString("toolbarType", ""));
     options.setActiveNativeNavigationForWebview(
-      call.getBoolean("activeNativeNavigationForWebview", false)
-    );
+        call.getBoolean("activeNativeNavigationForWebview", false));
     options.setDisableGoBackOnNativeApplication(
-      call.getBoolean("disableGoBackOnNativeApplication", false)
-    );
+        call.getBoolean("disableGoBackOnNativeApplication", false));
     options.setPresentAfterPageLoad(
-      call.getBoolean("isPresentAfterPageLoad", false)
-    );
+        call.getBoolean("isPresentAfterPageLoad", false));
     if (call.getBoolean("closeModal", false)) {
       options.setCloseModal(true);
       options.setCloseModalTitle(call.getString("closeModalTitle", "Close"));
       options.setCloseModalDescription(
-        call.getString("closeModalDescription", "Are you sure ?")
-      );
+          call.getString("closeModalDescription", "Are you sure ?"));
       options.setCloseModalOk(call.getString("closeModalOk", "Ok"));
       options.setCloseModalCancel(call.getString("closeModalCancel", "Cancel"));
     } else {
       options.setCloseModal(false);
     }
     options.setPluginCall(call);
-    //    options.getToolbarItemTypes().add(ToolbarItemType.RELOAD); TODO: fix this
+    // options.getToolbarItemTypes().add(ToolbarItemType.RELOAD); TODO: fix this
     options.setCallbacks(
-      new WebViewCallbacks() {
-        @Override
-        public void urlChangeEvent(String url) {
-          notifyListeners("urlChangeEvent", new JSObject().put("url", url));
-        }
-
-        @Override
-        public void closeEvent(String url) {
-          notifyListeners("closeEvent", new JSObject().put("url", url));
-        }
-
-        @Override
-        public void pageLoaded() {
-          notifyListeners("browserPageLoaded", new JSObject());
-        }
-
-        @Override
-        public void pageLoadError() {
-          notifyListeners("pageLoadError", new JSObject());
-        }
-      }
-    );
-    this.getActivity()
-      .runOnUiThread(
-        new Runnable() {
+        new WebViewCallbacks() {
           @Override
-          public void run() {
-            webViewDialog = new WebViewDialog(
-              getContext(),
-              android.R.style.Theme_NoTitleBar,
-              options,
-              InAppBrowserPlugin.this
-            );
-            webViewDialog.presentWebView();
-            webViewDialog.activity = InAppBrowserPlugin.this.getActivity();
+          public void urlChangeEvent(String url) {
+            notifyListeners("urlChangeEvent", new JSObject().put("url", url));
           }
-        }
-      );
+
+          @Override
+          public void closeEvent(String url) {
+            notifyListeners("closeEvent", new JSObject().put("url", url));
+          }
+
+          @Override
+          public void pageLoaded() {
+            notifyListeners("browserPageLoaded", new JSObject());
+          }
+
+          @Override
+          public void pageLoadError() {
+            notifyListeners("pageLoadError", new JSObject());
+          }
+
+          @Override
+          public void shareButtonClicked() {
+            notifyListeners("shareButtonClicked", new JSObject());
+          }
+
+          @Override
+          public void downloadButtonClicked() {
+            notifyListeners("downloadButtonClicked", new JSObject());
+          }
+        });
+    this.getActivity()
+        .runOnUiThread(
+            new Runnable() {
+              @Override
+              public void run() {
+                webViewDialog = new WebViewDialog(
+                    getContext(),
+                    android.R.style.Theme_NoTitleBar,
+                    options,
+                    InAppBrowserPlugin.this);
+                webViewDialog.presentWebView();
+                webViewDialog.activity = InAppBrowserPlugin.this.getActivity();
+              }
+            });
   }
 
   @PluginMethod
@@ -365,14 +519,13 @@ public class InAppBrowserPlugin
 
     if (webViewDialog != null) {
       this.getActivity()
-        .runOnUiThread(
-          new Runnable() {
-            @Override
-            public void run() {
-              webViewDialog.executeScript(script);
-            }
-          }
-        );
+          .runOnUiThread(
+              new Runnable() {
+                @Override
+                public void run() {
+                  webViewDialog.executeScript(script);
+                }
+              });
     }
 
     call.resolve();
@@ -382,14 +535,13 @@ public class InAppBrowserPlugin
   public void reload(PluginCall call) {
     if (webViewDialog != null) {
       this.getActivity()
-        .runOnUiThread(
-          new Runnable() {
-            @Override
-            public void run() {
-              webViewDialog.reload();
-            }
-          }
-        );
+          .runOnUiThread(
+              new Runnable() {
+                @Override
+                public void run() {
+                  webViewDialog.reload();
+                }
+              });
     }
     call.resolve();
   }
@@ -397,30 +549,27 @@ public class InAppBrowserPlugin
   @PluginMethod
   public void close(PluginCall call) {
     this.getActivity()
-      .runOnUiThread(
-        new Runnable() {
-          @Override
-          public void run() {
-            if (webViewDialog != null) {
-              notifyListeners(
-                "closeEvent",
-                new JSObject().put("url", webViewDialog.getUrl())
-              );
-              webViewDialog.dismiss();
-              webViewDialog.destroy();
-              webViewDialog = null;
-            } else {
-              Intent intent = new Intent(
-                getContext(),
-                getBridge().getActivity().getClass()
-              );
-              intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-              getContext().startActivity(intent);
-            }
-            call.resolve();
-          }
-        }
-      );
+        .runOnUiThread(
+            new Runnable() {
+              @Override
+              public void run() {
+                if (webViewDialog != null) {
+                  notifyListeners(
+                      "closeEvent",
+                      new JSObject().put("url", webViewDialog.getUrl()));
+                  webViewDialog.dismiss();
+                  webViewDialog.destroy();
+                  webViewDialog = null;
+                } else {
+                  Intent intent = new Intent(
+                      getContext(),
+                      getBridge().getActivity().getClass());
+                  intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                  getContext().startActivity(intent);
+                }
+                call.resolve();
+              }
+            });
   }
 
   private Bundle getHeaders(PluginCall pluginCall) {
@@ -438,10 +587,9 @@ public class InAppBrowserPlugin
 
   protected void handleOnResume() {
     boolean ok = CustomTabsClient.bindCustomTabsService(
-      getContext(),
-      CUSTOM_TAB_PACKAGE_NAME,
-      connection
-    );
+        getContext(),
+        CUSTOM_TAB_PACKAGE_NAME,
+        connection);
     if (!ok) {
       Log.e(getLogTag(), "Error binding to custom tabs service");
     }
@@ -458,18 +606,18 @@ public class InAppBrowserPlugin
 
     if (currentSession == null) {
       currentSession = customTabsClient.newSession(
-        new CustomTabsCallback() {
-          @Override
-          public void onNavigationEvent(int navigationEvent, Bundle extras) {
-            switch (navigationEvent) {
-              case NAVIGATION_FINISHED:
-                notifyListeners("browserPageLoaded", new JSObject());
-                break;
+          new CustomTabsCallback() {
+            @Override
+            public void onNavigationEvent(int navigationEvent, Bundle extras) {
+              switch (navigationEvent) {
+                case NAVIGATION_FINISHED:
+                  notifyListeners("browserPageLoaded", new JSObject());
+                  break;
+              }
             }
-          }
-        }
-      );
+          });
     }
     return currentSession;
   }
+
 }

@@ -2,6 +2,7 @@ package ee.forgr.capacitor_inappbrowser;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
+import android.view.View;
 
 public class Options {
 
@@ -24,7 +25,13 @@ public class Options {
   private boolean VisibleTitle;
   private String ToolbarColor;
   private boolean ShowArrow;
+  private boolean ShowShareButton;
+  private boolean ShowDownloadButton;
+  private boolean ShowNavigationButtons;
   private boolean ignoreUntrustedSSLError;
+  private String browserPosition;
+  private View.OnClickListener shareButtonClickListener;  
+  private String notifyShare;
 
   public PluginCall getPluginCall() {
     return pluginCall;
@@ -137,8 +144,7 @@ public class Options {
   }
 
   public void setActiveNativeNavigationForWebview(
-    boolean activeNativeNavigationForWebview
-  ) {
+      boolean activeNativeNavigationForWebview) {
     this.activeNativeNavigationForWebview = activeNativeNavigationForWebview;
   }
 
@@ -147,8 +153,7 @@ public class Options {
   }
 
   public void setDisableGoBackOnNativeApplication(
-    boolean disableGoBackOnNativeApplication
-  ) {
+      boolean disableGoBackOnNativeApplication) {
     this.disableGoBackOnNativeApplication = disableGoBackOnNativeApplication;
   }
 
@@ -192,11 +197,59 @@ public class Options {
     this.ShowArrow = _showArrow;
   }
 
+  public boolean showShareButton() {
+    return ShowShareButton;
+  }
+
+  public void setShareButton(boolean _showShareButton) {
+    this.ShowShareButton = _showShareButton;
+  }
+
+  public boolean showDownloadButton() {
+    return ShowDownloadButton;
+  }
+
+  public void setDownloadButton(boolean _showDownloadButton) {
+    this.ShowDownloadButton = _showDownloadButton;
+  }
+
+  public boolean showNavigationButtons() {
+    return ShowNavigationButtons;
+  }
+
+  public void setNavigationButtons(boolean _showNavigationButtons) {
+    this.ShowNavigationButtons = _showNavigationButtons;
+  }
+
   public boolean ignoreUntrustedSSLError() {
     return ignoreUntrustedSSLError;
   }
 
   public void setIgnoreUntrustedSSLError(boolean _ignoreUntrustedSSLError) {
     this.ignoreUntrustedSSLError = _ignoreUntrustedSSLError;
+  }
+
+  public void setBrowserPosition(String browserPosition) {
+    this.browserPosition = browserPosition;
+  }
+
+  public String getBrowserPosition() {
+    return this.browserPosition;
+  }
+
+  public View.OnClickListener getShareButtonClickListener() {
+    return shareButtonClickListener;
+  }
+
+  public void setShareButtonClickListener(View.OnClickListener shareButtonClickListener) {
+    this.shareButtonClickListener = shareButtonClickListener;
+  }
+
+  public String getNotifyShare() {
+    return notifyShare;
+  }
+
+  public void setNotifyShare(String notifyShare) {
+    this.notifyShare = notifyShare;
   }
 }

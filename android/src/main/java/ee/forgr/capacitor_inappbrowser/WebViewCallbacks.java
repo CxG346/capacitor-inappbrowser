@@ -8,4 +8,8 @@ public interface WebViewCallbacks {
   public void pageLoaded();
 
   public void pageLoadError();
+
+  public void shareButtonClicked();
+
+  public void downloadButtonClicked();
 }

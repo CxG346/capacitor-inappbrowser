@@ -7,4 +7,6 @@
     <string name="back_button">Back Button</string>
     <string name="title">Title</string>
     <string name="forward_button">Forward Button</string>
+    <string name="share_button">Share</string>
+    <string name="download_button">Download</string>
 </resources>
