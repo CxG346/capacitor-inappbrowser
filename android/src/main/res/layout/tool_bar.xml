@@ -70,7 +70,7 @@
         android:singleLine="false"
         android:textColor="#262626" />
 
-    <ImageButton
+    <!-- <ImageButton
         android:id="@+id/shareButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -80,5 +80,19 @@
         android:paddingRight="10dp"
         android:src="@drawable/share_svg"
         android:visibility="visible"
-         />
+         /> -->
+
+    <Button
+        android:id="@+id/shareButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:background="@drawable/button_background"
+        android:text="Button Text"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginBottom="3dp"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:textSize="16sp"/>
 </android.widget.Toolbar>

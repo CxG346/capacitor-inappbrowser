@@ -16,6 +16,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.Button;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.PermissionRequest;
@@ -42,6 +43,8 @@ import android.print.PrintAttributes;
 import android.graphics.Bitmap;
 import com.getcapacitor.JSObject;
 import android.graphics.BitmapFactory;
+
+import android.graphics.drawable.GradientDrawable;
 
 public class WebViewDialog extends Dialog {
 
@@ -72,7 +75,7 @@ public class WebViewDialog extends Dialog {
   private void notifyShareButtonClicked() {
     if (webViewCallbacks != null) {
       webViewCallbacks.shareButtonClicked();
-    }else{
+    } else {
       Log.d("WebViewDialog", "webViewCallbacks is null");
     }
   }
@@ -80,7 +83,7 @@ public class WebViewDialog extends Dialog {
   private void notifyDownloadButtonClicked() {
     if (webViewCallbacks != null) {
       webViewCallbacks.downloadButtonClicked();
-    }else{
+    } else {
       Log.d("WebViewDialog", "webViewCallbacks is null");
     }
   }
@@ -280,7 +283,7 @@ public class WebViewDialog extends Dialog {
     _toolbar.findViewById(R.id.forwardButton).setBackgroundColor(color);
     _toolbar.findViewById(R.id.closeButton).setBackgroundColor(color);
     _toolbar.findViewById(R.id.reloadButton).setBackgroundColor(color);
-    _toolbar.findViewById(R.id.shareButton).setBackgroundColor(color);
+    // _toolbar.findViewById(R.id.shareButton).setBackgroundColor(color);
     _toolbar.findViewById(R.id.downloadButton).setBackgroundColor(color);
 
     if (!TextUtils.isEmpty(_options.getTitle())) {
@@ -317,15 +320,18 @@ public class WebViewDialog extends Dialog {
           }
         });
 
-    View shareButton = _toolbar.findViewById(R.id.shareButton);
+    Button shareButton = _toolbar.findViewById(R.id.shareButton);
     shareButton.setOnClickListener(
         new View.OnClickListener() {
           @Override
           public void onClick(View view) {
-            Intent shareIntent = new Intent(Intent.ACTION_SEND);
-            shareIntent.setType("text/plain");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, _webView.getUrl());
-            _context.startActivity(Intent.createChooser(shareIntent, "Share link using"));
+            if(_options.getShareFunction()){
+              Intent shareIntent = new Intent(Intent.ACTION_SEND);
+              shareIntent.setType("text/plain");
+              shareIntent.putExtra(Intent.EXTRA_TEXT, _webView.getUrl());
+              _context.startActivity(Intent.createChooser(shareIntent, "Share link using"));
+            }
+
             notifyShareButtonClicked();
           }
         });
@@ -336,6 +342,8 @@ public class WebViewDialog extends Dialog {
           @Override
           public void onClick(View view) {
             if (_webView != null) {
+              notifyDownloadButtonClicked();
+
               String url = _webView.getUrl();
               if (url != null) {
                 PrintManager printManager = (PrintManager) _context.getSystemService(Context.PRINT_SERVICE);
@@ -350,7 +358,6 @@ public class WebViewDialog extends Dialog {
                 printManager.print(jobName, printAdapter, builder.build());
               }
 
-              notifyDownloadButtonClicked();
             }
           }
         });
@@ -397,6 +404,23 @@ public class WebViewDialog extends Dialog {
 
     if (_options.showShareButton()) {
       shareButton.setVisibility(View.VISIBLE);
+    }
+
+    if (_options.getCustomTextShareButton() != null && !_options.getCustomTextShareButton().isEmpty()) {
+      Log.d("WebViewDialog", "Custom text for share button: " + _options.getCustomTextShareButton());
+      shareButton.setText(_options.getCustomTextShareButton());
+    }
+
+    if (_options.getColorShareButton() != null && !_options.getColorShareButton().isEmpty()) {
+      try {
+        int shareButtonColor = Color.parseColor(_options.getColorShareButton());
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setColor(shareButtonColor);
+        drawable.setCornerRadius(8 * _context.getResources().getDisplayMetrics().density);
+        shareButton.setBackground(drawable);
+      } catch (IllegalArgumentException e) {
+        Log.e("WebViewDialog", "Invalid color format: " + _options.getColorShareButton());
+      }
     }
 
     if (_options.showDownloadButton()) {
@@ -513,9 +537,11 @@ public class WebViewDialog extends Dialog {
               forwardButton.setEnabled(false);
             }
 
-            ImageButton shareButton = _toolbar.findViewById(R.id.shareButton);
-            shareButton.setImageResource(R.drawable.share_svg);
-            shareButton.setEnabled(true);
+            /*
+             * ImageButton shareButton = _toolbar.findViewById(R.id.shareButton);
+             * shareButton.setImageResource(R.drawable.share_svg);
+             * shareButton.setEnabled(true);
+             */
 
             ImageButton downloadButton = _toolbar.findViewById(R.id.downloadButton);
             downloadButton.setEnabled(true);

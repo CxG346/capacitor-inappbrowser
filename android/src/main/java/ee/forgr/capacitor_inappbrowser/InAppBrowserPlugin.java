@@ -46,6 +46,7 @@ import android.util.Log;
 import android.widget.Toast;
 import android.content.Context;
 
+
 @CapacitorPlugin(name = "InAppBrowser", permissions = {
     @Permission(alias = "camera", strings = { Manifest.permission.CAMERA }),
     @Permission(alias = "storage", strings = { Manifest.permission.READ_EXTERNAL_STORAGE }),
@@ -161,6 +162,7 @@ public class InAppBrowserPlugin
 
   @PluginMethod
   public void openWeb(PluginCall call) {
+    Log.d("WebViewDialog", "All data received: " + call.getData().toString());
     String url = call.getString("url");
 
     if (url == null || TextUtils.isEmpty(url)) {
@@ -172,7 +174,9 @@ public class InAppBrowserPlugin
     options.setHeaders(call.getObject("headers"));
     options.setShowReloadButton(call.getBoolean("showReloadButton", false));
     options.setVisibleTitle(call.getBoolean("visibleTitle", true));
-
+    options.setCustomTextShareButton(call.getString("customTextShareButton", "Share"));
+    options.setColorShareButton(call.getString("colorShareButton", "#00BFFF"));
+    options.setShareFunction(call.getBoolean("shareFunction", false));
     if (Boolean.TRUE.equals(options.getVisibleTitle())) {
       options.setTitle(call.getString("title", "New Window"));
     } else {

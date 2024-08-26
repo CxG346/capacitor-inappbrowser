@@ -3,10 +3,12 @@ package ee.forgr.capacitor_inappbrowser;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PluginCall;
 import android.view.View;
+import android.util.Log;
 
 public class Options {
 
   private String title;
+  private String customTextShareButton;
   private boolean CloseModal;
   private String CloseModalTitle;
   private String CloseModalDescription;
@@ -29,9 +31,12 @@ public class Options {
   private boolean ShowDownloadButton;
   private boolean ShowNavigationButtons;
   private boolean ignoreUntrustedSSLError;
+  private boolean shareFunction;
+  private boolean printFunction;
   private String browserPosition;
-  private View.OnClickListener shareButtonClickListener;  
+  private View.OnClickListener shareButtonClickListener;
   private String notifyShare;
+  private String ColorShareButton;
 
   public PluginCall getPluginCall() {
     return pluginCall;
@@ -251,5 +256,30 @@ public class Options {
 
   public void setNotifyShare(String notifyShare) {
     this.notifyShare = notifyShare;
+  }
+
+  public String getCustomTextShareButton() {
+    return customTextShareButton;
+  }
+
+  public void setCustomTextShareButton(String customTextShareButton) {
+    Log.d("WebViewDialog", "setCustomTextShareButton: " + customTextShareButton);
+    this.customTextShareButton = customTextShareButton;
+  }
+
+  public String getColorShareButton() {
+    return ColorShareButton;
+  }
+
+  public void setColorShareButton(String ColorShareButton) {
+    this.ColorShareButton = ColorShareButton;
+  }
+
+  public boolean getShareFunction() {
+    return shareFunction;
+  }
+
+  public void setShareFunction(boolean shareFunction) {
+    this.shareFunction = shareFunction;
   }
 }
