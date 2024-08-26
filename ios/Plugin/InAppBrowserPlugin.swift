@@ -184,6 +184,116 @@ public class InAppBrowserPlugin: CAPPlugin {
         }
     }
 
+    //PLUGIN NEW FUNCTION
+
+    @objc func openWeb(_ call: CAPPluginCall) {
+        if !self.isSetupDone {
+            self.setup()
+        }
+        self.currentPluginCall = call
+
+        guard let urlString = call.getString("url") else {
+            call.reject("Must provide a URL to open")
+            return
+        }
+
+        if urlString.isEmpty {
+            call.reject("URL must not be empty")
+            return
+        }
+
+        let headers = call.getObject("headers", [:]).mapValues { String(describing: $0 as Any) }
+        let closeModal = call.getBool("closeModal", false)
+        let closeModalTitle = call.getString("closeModalTitle", "Close")
+        let closeModalDescription = call.getString("closeModalDescription", "Are you sure you want to close this window?")
+        let closeModalOk = call.getString("closeModalOk", "OK")
+        let closeModalCancel = call.getString("closeModalCancel", "Cancel")
+        let isInspectable = call.getBool("isInspectable", false)
+        let isAnimated = call.getBool("isAnimated", true)
+        //NEW BUTTONS
+        let showDownloadButton = call.getBool("showDownloadButton", false)
+        let showShareButton = call.getBool("showShareButton", false)
+        let showNavigationButton = call.getBool("showNavigationButton", false)
+        //
+
+        var disclaimerContent = call.getObject("shareDisclaimer")
+        let toolbarType = call.getString("toolbarType", "")
+        let backgroundColor = call.getString("backgroundColor", "black") == "white" ? UIColor.white : UIColor.black
+        if toolbarType != "activity" {
+            disclaimerContent = nil
+        }
+        let ignoreUntrustedSSLError = call.getBool("ignoreUntrustedSSLError", false)
+
+        self.isPresentAfterPageLoad = call.getBool("isPresentAfterPageLoad", false)
+        let showReloadButton = call.getBool("showReloadButton", false)
+
+        DispatchQueue.main.async {
+            let url = URL(string: urlString)
+
+            if self.isPresentAfterPageLoad {
+                self.webViewController = WKWebViewController.init(url: url!, headers: headers, isInspectable: isInspectable)
+            } else {
+                self.webViewController = WKWebViewController.init()
+                self.webViewController?.setHeaders(headers: headers)
+            }
+
+            self.webViewController?.source = .remote(url!)
+            self.webViewController?.leftNavigationBarItemTypes = self.getToolbarItems(toolbarType: toolbarType) + [.reload]
+            self.webViewController?.leftNavigationBarItemTypes = self.getToolbarItems(toolbarType: toolbarType)
+            self.webViewController?.toolbarItemTypes = []
+            self.webViewController?.doneBarButtonItemPosition = .right
+            if call.getBool("showArrow", false) {
+                self.webViewController?.stopBarButtonItemImage = UIImage(named: "Forward@3x", in: Bundle(for: InAppBrowserPlugin.self), compatibleWith: nil)
+            }
+            //FUNCTIONS OF NEW BUTTON
+            if call.getBool("showDownloadButton", false) {
+                self.webViewController?.leftNavigationBarItemTypes = [.download]
+            }
+
+            if call.getBool("showShareButton", false) {
+                self.webViewController?.rightNavigationBarItemTypes = [.share]
+            }
+
+            if call.getBool("showNavigationButton", false) {
+                self.webViewController?.leftNavigationBarItemTypes = [.back, .forward]
+            }
+            //
+
+            self.webViewController?.capBrowserPlugin = self
+            self.webViewController?.title = call.getString("title", "New Window")
+            self.webViewController?.shareSubject = call.getString("shareSubject")
+            self.webViewController?.shareDisclaimer = disclaimerContent
+            self.webViewController?.websiteTitleInNavigationBar = call.getBool("visibleTitle", true)
+            if closeModal {
+                self.webViewController?.closeModal = true
+                self.webViewController?.closeModalTitle = closeModalTitle
+                self.webViewController?.closeModalDescription = closeModalDescription
+                self.webViewController?.closeModalOk = closeModalOk
+                self.webViewController?.closeModalCancel = closeModalCancel
+            }
+            self.webViewController?.ignoreUntrustedSSLError = ignoreUntrustedSSLError
+            self.navigationWebViewController = UINavigationController.init(rootViewController: self.webViewController!)
+            self.navigationWebViewController?.navigationBar.isTranslucent = false
+            self.navigationWebViewController?.toolbar.isTranslucent = false
+            self.navigationWebViewController?.navigationBar.backgroundColor = backgroundColor
+            self.navigationWebViewController?.toolbar.backgroundColor = backgroundColor
+            self.navigationWebViewController?.toolbar.tintColor = backgroundColor == UIColor.black ? UIColor.white : UIColor.black
+            self.navigationWebViewController?.modalPresentationStyle = .fullScreen
+            if toolbarType == "blank" {
+                self.navigationWebViewController?.navigationBar.isHidden = true
+            }
+            if showReloadButton {
+                let toolbarItems = self.getToolbarItems(toolbarType: toolbarType)
+                self.webViewController?.leftNavigationBarItemTypes = toolbarItems + [.reload]
+            }
+            if !self.isPresentAfterPageLoad {
+                self.presentView(isAnimated: isAnimated)
+            }
+        }
+    }
+
+    //
+
     func getToolbarItems(toolbarType: String) -> [BarButtonItemType] {
         var result: [BarButtonItemType] = []
         if toolbarType == "activity" {

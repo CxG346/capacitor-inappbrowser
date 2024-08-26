@@ -73,6 +73,11 @@ export interface NewOpenWebOptions {
    */
   shareSubject?: string;
   /**
+   * Custom text for the share button.
+   * @since 0.1.0
+   */
+  customTextShareButton?: string;
+  /**
    * Title of the browser
    * @since 0.1.0
    * @default 'New Window'
@@ -190,7 +195,7 @@ export interface NewOpenWebOptions {
    * Position of the browser.
    * @since 0.1.0
    */
-  browserPosition: 'top' | 'bottom';
+  browserPosition?: 'top' | 'bottom';
   /**
    * Show share button.
    * @since 0.1.0
@@ -207,11 +212,13 @@ export interface NewOpenWebOptions {
    */
   showNavigationButtons?: boolean;
 
-  jsFunction?: string;
+  colorShareButton?: string;
+
+  shareFunction?: boolean;
 }
 
 export interface shareFunctionOptions {
-  newFunction: string
+  newFunction: string;
 }
 
 export interface OpenOptions {
@@ -498,19 +505,19 @@ export interface InAppBrowserPlugin {
    */
   addListener(eventName: 'confirmBtnClicked', listenerFunc: ConfirmBtnListener): Promise<PluginListenerHandle>;
 
-    /**
+  /**
    * Will be triggered when user clicks on share button
    *
    * @since 1.0.0
    */
   addListener(eventName: 'shareButtonClicked', listenerFunc: () => void): Promise<PluginListenerHandle>;
 
-      /**
+  /**
    * Will be triggered when user clicks on download button
    *
    * @since 1.0.0
    */
-      addListener(eventName: 'downloadButtonClicked', listenerFunc: () => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'downloadButtonClicked', listenerFunc: () => void): Promise<PluginListenerHandle>;
 
   /**
    * Remove all listeners for this plugin.
@@ -526,10 +533,10 @@ export interface InAppBrowserPlugin {
    */
   reload(): Promise<any>; // Add this line
 
-   /**
+  /**
    * Share the current URL.
    *
    * @since 1.1.0
    */
-   shareFunction(options: shareFunctionOptions): Promise<any>;
+  shareFunction(options: shareFunctionOptions): Promise<any>;
 }
