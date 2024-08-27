@@ -40,11 +40,14 @@ import java.util.Map;
 import android.print.PrintManager;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintAttributes;
-import android.graphics.Bitmap;
 import com.getcapacitor.JSObject;
 import android.graphics.BitmapFactory;
 
 import android.graphics.drawable.GradientDrawable;
+
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
+import android.os.Bundle;
 
 public class WebViewDialog extends Dialog {
 
@@ -107,17 +110,33 @@ public class WebViewDialog extends Dialog {
   }
 
   public void presentWebView() {
-    requestWindowFeature(Window.FEATURE_NO_TITLE);
-    setCancelable(true);
-    getWindow()
-        .setFlags(
-            WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN);
-    setContentView(R.layout.activity_browser);
-    getWindow()
-        .setLayout(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT);
+    if (_options.getBrowserPosition().equals("bottom")) {
+      requestWindowFeature(Window.FEATURE_NO_TITLE);
+      setCancelable(true);
+      getWindow()
+          .setFlags(
+              WindowManager.LayoutParams.FLAG_FULLSCREEN,
+              WindowManager.LayoutParams.FLAG_FULLSCREEN);
+      setContentView(R.layout.activity_browser_bottom);
+      getWindow()
+          .setLayout(
+              WindowManager.LayoutParams.MATCH_PARENT,
+              WindowManager.LayoutParams.MATCH_PARENT);
+
+    } else {
+      requestWindowFeature(Window.FEATURE_NO_TITLE);
+      setCancelable(true);
+      getWindow()
+          .setFlags(
+              WindowManager.LayoutParams.FLAG_FULLSCREEN,
+              WindowManager.LayoutParams.FLAG_FULLSCREEN);
+      setContentView(R.layout.activity_browser_top);
+      getWindow()
+          .setLayout(
+              WindowManager.LayoutParams.MATCH_PARENT,
+              WindowManager.LayoutParams.MATCH_PARENT);
+
+    }
 
     this._webView = findViewById(R.id.browser_view);
 
@@ -265,6 +284,8 @@ public class WebViewDialog extends Dialog {
     TextView textView = (TextView) _toolbar.findViewById(R.id.titleText);
     if (_options.getVisibleTitle()) {
       textView.setText(newTitleText);
+
+      textView.setTextColor(Color.parseColor(_options.getColorTitle()));
     } else {
       textView.setText("");
     }
@@ -325,7 +346,7 @@ public class WebViewDialog extends Dialog {
         new View.OnClickListener() {
           @Override
           public void onClick(View view) {
-            if(_options.getShareFunction()){
+            if (_options.getShareFunction()) {
               Intent shareIntent = new Intent(Intent.ACTION_SEND);
               shareIntent.setType("text/plain");
               shareIntent.putExtra(Intent.EXTRA_TEXT, _webView.getUrl());
@@ -341,9 +362,7 @@ public class WebViewDialog extends Dialog {
         new View.OnClickListener() {
           @Override
           public void onClick(View view) {
-            if (_webView != null) {
-              notifyDownloadButtonClicked();
-
+            if (_webView != null && _options.getPrintFunction()) {
               String url = _webView.getUrl();
               if (url != null) {
                 PrintManager printManager = (PrintManager) _context.getSystemService(Context.PRINT_SERVICE);
@@ -359,6 +378,8 @@ public class WebViewDialog extends Dialog {
               }
 
             }
+
+            notifyDownloadButtonClicked();
           }
         });
 
@@ -404,6 +425,8 @@ public class WebViewDialog extends Dialog {
 
     if (_options.showShareButton()) {
       shareButton.setVisibility(View.VISIBLE);
+    } else {
+      shareButton.setVisibility(View.GONE);
     }
 
     if (_options.getCustomTextShareButton() != null && !_options.getCustomTextShareButton().isEmpty()) {
@@ -423,8 +446,19 @@ public class WebViewDialog extends Dialog {
       }
     }
 
+    if (_options.getColorShareText() != null && !_options.getColorShareText().isEmpty()) {
+      try {
+        int shareButtonTextColor = Color.parseColor(_options.getColorShareText());
+        shareButton.setTextColor(shareButtonTextColor);
+      } catch (IllegalArgumentException e) {
+        Log.e("WebViewDialog", "Invalid color format: " + _options.getColorShareText());
+      }
+    }
+
     if (_options.showDownloadButton()) {
       downloadButton.setVisibility(View.VISIBLE);
+    } else {
+      downloadButton.setVisibility(View.GONE);
     }
 
     if (_options.getShowReloadButton()) {
@@ -491,6 +525,7 @@ public class WebViewDialog extends Dialog {
               if (TextUtils.isEmpty(_options.getTitle())) {
                 setTitle(uri.getHost());
               }
+
             } catch (URISyntaxException e) {
               // Do nothing
             }
@@ -521,19 +556,19 @@ public class WebViewDialog extends Dialog {
 
             ImageButton backButton = _toolbar.findViewById(R.id.backButton);
             if (_webView.canGoBack()) {
-              backButton.setImageResource(R.drawable.arrow_back_enabled);
+              // backButton.setImageResource(R.drawable.arrow_back_enabled);
               backButton.setEnabled(true);
             } else {
-              backButton.setImageResource(R.drawable.arrow_back_disabled);
+              // backButton.setImageResource(R.drawable.arrow_back_disabled);
               backButton.setEnabled(false);
             }
 
             ImageButton forwardButton = _toolbar.findViewById(R.id.forwardButton);
             if (_webView.canGoForward()) {
-              forwardButton.setImageResource(R.drawable.arrow_forward_enabled);
+              // forwardButton.setImageResource(R.drawable.arrow_forward_enabled);
               forwardButton.setEnabled(true);
             } else {
-              forwardButton.setImageResource(R.drawable.arrow_forward_disabled);
+              // forwardButton.setImageResource(R.drawable.arrow_forward_disabled);
               forwardButton.setEnabled(false);
             }
 
@@ -550,25 +585,36 @@ public class WebViewDialog extends Dialog {
             closeButton.setEnabled(true);
 
             int paddingRight = 25;
-            closeButton.setPadding(closeButton.getPaddingLeft(), closeButton.getPaddingTop(), paddingRight,
-                closeButton.getPaddingBottom());
+            /*
+             * closeButton.setPadding(closeButton.getPaddingLeft(),
+             * closeButton.getPaddingTop(), paddingRight,
+             * closeButton.getPaddingBottom());
+             */
 
-            Bitmap originalBitmap = BitmapFactory.decodeResource(_context.getResources(), R.drawable.download_enabled);
-            Bitmap originalBitmapClose = BitmapFactory.decodeResource(_context.getResources(), R.drawable.close);
-            Bitmap originalBitmapBack = BitmapFactory.decodeResource(_context.getResources(), R.drawable.prev);
-            Bitmap originalBitmapForward = BitmapFactory.decodeResource(_context.getResources(), R.drawable.next);
+            // Bitmap originalBitmap = BitmapFactory.decodeResource(_context.getResources(),
+            // R.drawable.download_enabled);
+            // Bitmap originalBitmapClose =
+            // BitmapFactory.decodeResource(_context.getResources(), R.drawable.close);
+            // Bitmap originalBitmapBack =
+            // BitmapFactory.decodeResource(_context.getResources(), R.drawable.prev);
+            // Bitmap originalBitmapForward =
+            // BitmapFactory.decodeResource(_context.getResources(), R.drawable.next);
 
             int width = 55;
             int height = 55;
-            Bitmap resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, width, height, false);
-            Bitmap resizedBitmapClose = Bitmap.createScaledBitmap(originalBitmapClose, width, height, false);
-            Bitmap resizedBitmapBack = Bitmap.createScaledBitmap(originalBitmapBack, width, height, false);
-            Bitmap resizedBitmapForward = Bitmap.createScaledBitmap(originalBitmapForward, width, height, false);
+            // Bitmap resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, width,
+            // height, false);
+            // Bitmap resizedBitmapClose = Bitmap.createScaledBitmap(originalBitmapClose,
+            // width, height, false);
+            // Bitmap resizedBitmapBack = Bitmap.createScaledBitmap(originalBitmapBack,
+            // width, height, false);
+            // Bitmap resizedBitmapForward =
+            // Bitmap.createScaledBitmap(originalBitmapForward, width, height, false);
 
-            downloadButton.setImageBitmap(resizedBitmap);
-            closeButton.setImageBitmap(resizedBitmapClose);
-            backButton.setImageBitmap(resizedBitmapBack);
-            forwardButton.setImageBitmap(resizedBitmapForward);
+            // downloadButton.setImageBitmap(resizedBitmap);
+            // closeButton.setImageBitmap(resizedBitmapClose);
+            // backButton.setImageBitmap(resizedBitmapBack);
+            // forwardButton.setImageBitmap(resizedBitmapForward);
 
             _options.getCallbacks().pageLoaded();
           }

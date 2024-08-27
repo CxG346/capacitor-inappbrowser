@@ -213,8 +213,11 @@ export interface NewOpenWebOptions {
   showNavigationButtons?: boolean;
 
   colorShareButton?: string;
+  colorShareText?: string;
+  colorTitle?: string;
 
   shareFunction?: boolean;
+  printFunction?: boolean;
 }
 
 export interface shareFunctionOptions {

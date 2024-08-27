@@ -176,9 +176,12 @@ public class InAppBrowserPlugin
     options.setVisibleTitle(call.getBoolean("visibleTitle", true));
     options.setCustomTextShareButton(call.getString("customTextShareButton", "Share"));
     options.setColorShareButton(call.getString("colorShareButton", "#00BFFF"));
+    options.setColorShareText(call.getString("colorShareText", "#ffffff"));
     options.setShareFunction(call.getBoolean("shareFunction", false));
+    options.setPrintFunction(call.getBoolean("printFunction", false));
     if (Boolean.TRUE.equals(options.getVisibleTitle())) {
       options.setTitle(call.getString("title", "New Window"));
+      options.setColorTitle(call.getString("colorTitle", "#000000"));
     } else {
       options.setTitle(call.getString("title", ""));
     }

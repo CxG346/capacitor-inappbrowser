@@ -37,6 +37,8 @@ public class Options {
   private View.OnClickListener shareButtonClickListener;
   private String notifyShare;
   private String ColorShareButton;
+  private String ColorShareText;
+  private String ColorTitle;
 
   public PluginCall getPluginCall() {
     return pluginCall;
@@ -281,5 +283,29 @@ public class Options {
 
   public void setShareFunction(boolean shareFunction) {
     this.shareFunction = shareFunction;
+  }
+
+  public boolean getPrintFunction() {
+    return printFunction;
+  }
+
+  public void setPrintFunction(boolean printFunction) {
+    this.printFunction = printFunction;
+  }
+
+  public String getColorShareText() {
+    return ColorShareText;
+  }
+
+  public void setColorShareText(String ColorShareText) {
+    this.ColorShareText = ColorShareText;
+  }
+
+  public String getColorTitle() {
+    return ColorTitle;
+  }
+
+  public void setColorTitle(String ColorTitle) {
+    this.ColorTitle = ColorTitle;
   }
 }
