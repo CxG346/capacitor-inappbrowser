@@ -211,12 +211,26 @@ export interface NewOpenWebOptions {
    * @since 0.1.0
    */
   showNavigationButtons?: boolean;
-
+  /**
+   * Color of the share button.
+   */
   colorShareButton?: string;
+  /**
+   * Color of the share text.
+   */
   colorShareText?: string;
+  /**
+   * Color of the title.
+   */
   colorTitle?: string;
 
+  /**
+   * Enable share function.
+   */
   shareFunction?: boolean;
+  /**
+   * Enable print function.
+   */
   printFunction?: boolean;
 }
 
