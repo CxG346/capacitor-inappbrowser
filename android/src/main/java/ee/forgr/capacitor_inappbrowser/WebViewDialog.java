@@ -49,6 +49,9 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.os.Bundle;
 
+import android.app.DownloadManager;
+import android.os.Environment;
+
 public class WebViewDialog extends Dialog {
 
   private WebView _webView;
@@ -362,21 +365,20 @@ public class WebViewDialog extends Dialog {
         new View.OnClickListener() {
           @Override
           public void onClick(View view) {
-            if (_webView != null && _options.getPrintFunction()) {
+            if (_webView != null) {
               String url = _webView.getUrl();
               if (url != null) {
-                PrintManager printManager = (PrintManager) _context.getSystemService(Context.PRINT_SERVICE);
-                String jobName = url + " " + System.currentTimeMillis();
+                Log.d("WebViewDialog", "Downloading file from " + url);
+                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                request.setTitle("Downloading file");
+                request.setDescription("Downloading file from " + url);
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,
+                    Uri.parse(url).getLastPathSegment());
 
-                PrintDocumentAdapter printAdapter = _webView.createPrintDocumentAdapter(jobName);
-                PrintAttributes.Builder builder = new PrintAttributes.Builder();
-                builder.setMediaSize(PrintAttributes.MediaSize.ISO_A4);
-                builder.setResolution(new PrintAttributes.Resolution("pdf", "pdf", 600, 600));
-                builder.setMinMargins(PrintAttributes.Margins.NO_MARGINS);
-
-                printManager.print(jobName, printAdapter, builder.build());
+                DownloadManager downloadManager = (DownloadManager) _context.getSystemService(Context.DOWNLOAD_SERVICE);
+                downloadManager.enqueue(request);
               }
-
             }
 
             notifyDownloadButtonClicked();
