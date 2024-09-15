@@ -91,6 +91,9 @@ open class WKWebViewController: UIViewController {
     open var closeModalCancel = ""
     open var ignoreUntrustedSSLError = false
     var viewWasPresented = false
+    open var customTextShareButton = "Share"
+    open var showShareButton = false
+    private var shareButton: UIButton!
 
     func setHeaders(headers: [String: String]) {
         self.headers = headers
@@ -139,6 +142,7 @@ open class WKWebViewController: UIViewController {
 
     open var backBarButtonItemImage: UIImage?
     open var forwardBarButtonItemImage: UIImage?
+    open var downloadBarButtonItemImage: UIImage?
     open var reloadBarButtonItemImage: UIImage?
     open var stopBarButtonItemImage: UIImage?
     open var activityBarButtonItemImage: UIImage?
@@ -166,6 +170,14 @@ open class WKWebViewController: UIViewController {
             return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(reloadDidClick(sender:)))
         } else {
             return UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(reloadDidClick(sender:)))
+        }
+    }()
+
+    fileprivate lazy var downloadBarButtonItem: UIBarButtonItem = {
+        if let image = UIImage(named: "Download") {
+            return UIBarButtonItem(image: image, style: .plain, target: self, action: #selector(downloadDidClick(sender:)))
+        } else {
+            return UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(downloadDidClick(sender:)))
         }
     }()
 
@@ -206,6 +218,25 @@ open class WKWebViewController: UIViewController {
         if self.webView == nil {
             self.initWebview()
         }
+
+        shareButton = UIButton(type: .system)
+        shareButton.setTitle(customTextShareButton, for: .normal)
+        shareButton.addTarget(self, action: #selector(shareButtonDidClick(sender:)), for: .touchUpInside)
+
+        shareButton.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(shareButton)
+
+        NSLayoutConstraint.activate([
+            shareButton.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            shareButton.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+        ])
+
+        shareButton.isHidden = !showShareButton
+    }
+
+    @objc func shareButtonDidClick(sender: UIButton) {
+        print("Share button clicked")
+        self.capBrowserPlugin?.notifyListeners("shareButtonClicked", data: nil)
     }
 
     open func initWebview(isInspectable: Bool = true) {
@@ -234,7 +265,7 @@ open class WKWebViewController: UIViewController {
             webView.addObserver(self, forKeyPath: titleKeyPath, options: .new, context: nil)
         }
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.url), options: .new, context: nil)
-        //        NotificationCenter.default.addObserver(self, selector: #selector(restateViewHeight), name: UIDevice.orientationDidChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(restateViewHeight), name: UIDevice.orientationDidChangeNotification, object: nil)
 
         self.view = webView
         self.webView = webView
@@ -297,7 +328,7 @@ open class WKWebViewController: UIViewController {
     }
 
     override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        //        self.view.frame.size.height = self.currentViewHeight!
+        self.view.frame.size.height = self.currentViewHeight!
     }
 
     override open func viewWillLayoutSubviews() {
@@ -429,7 +460,7 @@ fileprivate extension WKWebViewController {
         let progressView = UIProgressView(progressViewStyle: .default)
         progressView.trackTintColor = UIColor(white: 1, alpha: 0)
         self.progressView = progressView
-        //        updateProgressViewFrame()
+//        updateProgressViewFrame()
     }
 
     func setUpConstraints() {
@@ -447,6 +478,8 @@ fileprivate extension WKWebViewController {
                 return backBarButtonItem
             case .forward:
                 return forwardBarButtonItem
+            case .download:
+                return downloadBarButtonItem
             case .reload:
                 return reloadBarButtonItem
             case .stop:
@@ -469,34 +502,34 @@ fileprivate extension WKWebViewController {
             }
         }
 
-        //        if presentingViewController != nil {
-        switch doneBarButtonItemPosition {
-        case .left:
-            if !leftNavigationBarItemTypes.contains(where: { type in
-                switch type {
-                case .done:
-                    return true
-                default:
-                    return false
+        if presentingViewController != nil {
+            switch doneBarButtonItemPosition {
+            case .left:
+                if !leftNavigationBarItemTypes.contains(where: { type in
+                    switch type {
+                    case .done:
+                        return true
+                    default:
+                        return false
+                    }
+                }) {
+                    leftNavigationBarItemTypes.insert(.done, at: 0)
                 }
-            }) {
-                leftNavigationBarItemTypes.insert(.done, at: 0)
-            }
-        case .right:
-            if !rightNavigaionBarItemTypes.contains(where: { type in
-                switch type {
-                case .done:
-                    return true
-                default:
-                    return false
+            case .right:
+                if !rightNavigaionBarItemTypes.contains(where: { type in
+                    switch type {
+                    case .done:
+                        return true
+                    default:
+                        return false
+                    }
+                }) {
+                    rightNavigaionBarItemTypes.insert(.done, at: 0)
                 }
-            }) {
-                rightNavigaionBarItemTypes.insert(.done, at: 0)
+            case .none:
+                break
             }
-        case .none:
-            break
         }
-        //        }
 
         navigationItem.leftBarButtonItems = leftNavigationBarItemTypes.map {
             barButtonItemType in
@@ -643,6 +676,46 @@ fileprivate extension WKWebViewController {
 
     @objc func forwardDidClick(sender: AnyObject) {
         webView?.goForward()
+    }
+
+    @objc func downloadDidClick(sender: UIBarButtonItem) {
+        guard let url = webView?.url else {
+            print("No URL found in webView")
+            return
+        }
+        
+        let task = URLSession.shared.downloadTask(with: url) { (tempURL, response, error) in
+            if let error = error {
+                print("Download error: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let tempURL = tempURL else {
+                print("No file URL")
+                return
+            }
+            
+            do {
+                let fileManager = FileManager.default
+                let documentsURL = try fileManager.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+                let savedURL = documentsURL.appendingPathComponent(url.lastPathComponent)
+                
+                try fileManager.moveItem(at: tempURL, to: savedURL)
+                print("File saved to: \(savedURL)")
+                
+                // Optionally, show an alert to the user
+                DispatchQueue.main.async {
+                    let alert = UIAlertController(title: "Download Complete", message: "File saved to: \(savedURL.path)", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                    self.present(alert, animated: true, completion: nil)
+                }
+                
+            } catch {
+                print("File error: \(error.localizedDescription)")
+            }
+        }
+        
+        task.resume()
     }
 
     @objc func reloadDidClick(sender: AnyObject) {

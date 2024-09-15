@@ -210,15 +210,10 @@ public class InAppBrowserPlugin: CAPPlugin {
         let closeModalCancel = call.getString("closeModalCancel", "Cancel")
         let isInspectable = call.getBool("isInspectable", false)
         let isAnimated = call.getBool("isAnimated", true)
-        //NEW BUTTONS
-        let showDownloadButton = call.getBool("showDownloadButton", false)
-        let showShareButton = call.getBool("showShareButton", false)
-        let showNavigationButton = call.getBool("showNavigationButton", false)
-        //
 
         var disclaimerContent = call.getObject("shareDisclaimer")
         let toolbarType = call.getString("toolbarType", "")
-        let backgroundColor = call.getString("backgroundColor", "black") == "white" ? UIColor.white : UIColor.black
+        let backgroundColor = call.getString("backgroundColor", "white") == "black" ? UIColor.black : UIColor.white
         if toolbarType != "activity" {
             disclaimerContent = nil
         }
@@ -242,22 +237,19 @@ public class InAppBrowserPlugin: CAPPlugin {
             self.webViewController?.leftNavigationBarItemTypes = self.getToolbarItems(toolbarType: toolbarType)
             self.webViewController?.toolbarItemTypes = []
             self.webViewController?.doneBarButtonItemPosition = .right
-            if call.getBool("showArrow", false) {
+            
+            let toolbarItems = self.getToolbarItems(toolbarType: toolbarType)
+            self.webViewController?.leftNavigationBarItemTypes = toolbarItems + [.download]
+            // customTextShareButton
+            if call.getBool("showArrow", true) {
                 self.webViewController?.stopBarButtonItemImage = UIImage(named: "Forward@3x", in: Bundle(for: InAppBrowserPlugin.self), compatibleWith: nil)
             }
-            //FUNCTIONS OF NEW BUTTON
-            if call.getBool("showDownloadButton", false) {
-                self.webViewController?.leftNavigationBarItemTypes = [.download]
-            }
 
-            if call.getBool("showShareButton", false) {
-                self.webViewController?.rightNavigationBarItemTypes = [.share]
-            }
-
-            if call.getBool("showNavigationButton", false) {
-                self.webViewController?.leftNavigationBarItemTypes = [.back, .forward]
-            }
-            //
+            // self.webViewController?.showShareButton(true)
+            let shareButtonNewText = call.getString("customTextShareButton", "Share")
+            let showShareButton = call.getBool("showShareButton", false)
+            self.webViewController?.customTextShareButton = shareButtonNewText
+            self.webViewController?.showShareButton = showShareButton  
 
             self.webViewController?.capBrowserPlugin = self
             self.webViewController?.title = call.getString("title", "New Window")
@@ -288,7 +280,9 @@ public class InAppBrowserPlugin: CAPPlugin {
             }
             if !self.isPresentAfterPageLoad {
                 self.presentView(isAnimated: isAnimated)
-            }
+            } 
+            
+            self.notifyListeners("shareButtonClicked", data: nil)
         }
     }
 
@@ -444,3 +438,4 @@ public class InAppBrowserPlugin: CAPPlugin {
         self.showPrivacyScreen()
     }
 }
+
