@@ -699,13 +699,20 @@ fileprivate extension WKWebViewController {
             
             do {
                 let fileManager = FileManager.default
-                let documentsURL = try fileManager.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
-                let savedURL = documentsURL.appendingPathComponent(url.lastPathComponent)
+                let downloadsURL = try fileManager.url(for: .downloadsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+                
+                // Obtener los segundos actuales
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "ss"
+                let secondsString = dateFormatter.string(from: Date())
+                
+                // Crear la URL de guardado con los segundos actuales como nombre de archivo
+                let savedURL = downloadsURL.appendingPathComponent("\(secondsString).\(url.pathExtension)")
                 
                 try fileManager.moveItem(at: tempURL, to: savedURL)
                 print("File saved to: \(savedURL)")
                 
-                // Optionally, show an alert to the user
+                // Mostrar una alerta al usuario
                 DispatchQueue.main.async {
                     let alert = UIAlertController(title: "Download Complete", message: "File saved to: \(savedURL.path)", preferredStyle: .alert)
                     alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
