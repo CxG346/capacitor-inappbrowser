@@ -223,6 +223,8 @@ open class WKWebViewController: UIViewController {
         shareButton.setTitle(customTextShareButton, for: .normal)
         shareButton.addTarget(self, action: #selector(shareButtonDidClick(sender:)), for: .touchUpInside)
 
+        shareButton.backgroundColor = .white
+
         shareButton.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(shareButton)
 

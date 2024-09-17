@@ -277,12 +277,13 @@ public class InAppBrowserPlugin: CAPPlugin {
             if showReloadButton {
                 let toolbarItems = self.getToolbarItems(toolbarType: toolbarType)
                 self.webViewController?.leftNavigationBarItemTypes = toolbarItems + [.reload]
+                self.notifyListeners("shareButtonClicked", data: nil)
             }
+            
             if !self.isPresentAfterPageLoad {
                 self.presentView(isAnimated: isAnimated)
             } 
             
-            self.notifyListeners("shareButtonClicked", data: nil)
         }
     }
 
