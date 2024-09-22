@@ -38,7 +38,7 @@ extension Dictionary {
     }
 }
 
-open class WKWebViewController: UIViewController {
+open class WKWebViewController: UIViewController, UIDocumentInteractionControllerDelegate, UIDocumentPickerDelegate   {
 
     public init() {
         super.init(nibName: nil, bundle: nil)
@@ -93,6 +93,7 @@ open class WKWebViewController: UIViewController {
     var viewWasPresented = false
     open var customTextShareButton = "Share"
     open var showShareButton = false
+    open var showDownloadButton = false
     private var shareButton: UIButton!
 
     func setHeaders(headers: [String: String]) {
@@ -219,6 +220,7 @@ open class WKWebViewController: UIViewController {
             self.initWebview()
         }
 
+        let bottomPadding: CGFloat = 20
         shareButton = UIButton(type: .system)
         shareButton.setTitle(customTextShareButton, for: .normal)
         shareButton.addTarget(self, action: #selector(shareButtonDidClick(sender:)), for: .touchUpInside)
@@ -229,8 +231,10 @@ open class WKWebViewController: UIViewController {
         self.view.addSubview(shareButton)
 
         NSLayoutConstraint.activate([
-            shareButton.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-            shareButton.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+            shareButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor), // Ancla el lado izquierdo
+            shareButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor), // Ancla el lado derecho
+            shareButton.bottomAnchor.constraint(equalTo: self.view.bottomAnchor), // Ancla al borde inferior
+            shareButton.heightAnchor.constraint(equalToConstant: 80) // Ajusta la altura según sea necesario
         ])
 
         shareButton.isHidden = !showShareButton
@@ -700,15 +704,40 @@ fileprivate extension WKWebViewController {
             do {
                 let fileManager = FileManager.default
                 let documentsURL = try fileManager.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
-                let savedURL = documentsURL.appendingPathComponent(url.lastPathComponent)
+                var fileName = url.lastPathComponent
+                
+                // Sanitiza el nombre del archivo
+                if fileName.isEmpty {
+                    fileName = "downloadedFile"
+                } else {
+                    fileName = fileName.replacingOccurrences(of: "/", with: "_") // Reemplaza caracteres problemáticos
+                }
+                let savedURL = documentsURL.appendingPathComponent(fileName)
+                
+                // Verifica si el archivo ya existe y elimínalo si es necesario
+                if fileManager.fileExists(atPath: savedURL.path) {
+                    try fileManager.removeItem(at: savedURL)                }
                 
                 try fileManager.moveItem(at: tempURL, to: savedURL)
-                print("File saved to: \(savedURL)")
+                print("File saved to: \(savedURL.path)")
                 
-                // Optionally, show an alert to the user
+                // Verifica que el archivo existe
+                if fileManager.fileExists(atPath: savedURL.path) {
+                    print("File exists: \(savedURL.path)")
+                } else {
+                    print("File not found: \(savedURL.path)")
+                }
+
+                // Listar archivos en el directorio de documentos
+                self.listDownloadedFiles()
+                
+                // Mostrar alerta al usuario y abrir el archivo
                 DispatchQueue.main.async {
                     let alert = UIAlertController(title: "Download Complete", message: "File saved to: \(savedURL.path)", preferredStyle: .alert)
-                    alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                    alert.addAction(UIAlertAction(title: "Open", style: .default, handler: { _ in
+                        self.openFile(at: savedURL)
+                    }))
+                    alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
                     self.present(alert, animated: true, completion: nil)
                 }
                 
@@ -719,6 +748,24 @@ fileprivate extension WKWebViewController {
         
         task.resume()
     }
+
+    func openFile(at url: URL) {
+        let documentInteractionController = UIDocumentInteractionController(url: url)
+        documentInteractionController.delegate = self
+        documentInteractionController.presentPreview(animated: true) // Muestra la vista previa del archivo
+    }
+
+    func listDownloadedFiles() {
+        let fileManager = FileManager.default
+        do {
+            let documentsURL = try fileManager.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+            let files = try fileManager.contentsOfDirectory(at: documentsURL, includingPropertiesForKeys: nil)
+            print("Files in documents directory: \(files)")
+        } catch {
+            print("Error listing files: \(error.localizedDescription)")
+        }
+    }
+
 
     @objc func reloadDidClick(sender: AnyObject) {
         webView?.stopLoading()

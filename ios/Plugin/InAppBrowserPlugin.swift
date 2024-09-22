@@ -239,7 +239,10 @@ public class InAppBrowserPlugin: CAPPlugin {
             self.webViewController?.doneBarButtonItemPosition = .right
             
             let toolbarItems = self.getToolbarItems(toolbarType: toolbarType)
-            self.webViewController?.leftNavigationBarItemTypes = toolbarItems + [.download]
+            let showDownloadButton = call.getBool("showDownloadButton", false)
+            if(showDownloadButton){
+                self.webViewController?.leftNavigationBarItemTypes = toolbarItems + [.download]
+            }
             // customTextShareButton
             if call.getBool("showArrow", true) {
                 self.webViewController?.stopBarButtonItemImage = UIImage(named: "Forward@3x", in: Bundle(for: InAppBrowserPlugin.self), compatibleWith: nil)
